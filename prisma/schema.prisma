@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  name     String?
+  address  String
+  phone    String
+  email    String
+  password String?
+  carts    Cart[]
+  orders   Orders[]
+}
+
+model Product {
+  id               Int          @id @default(autoincrement())
+  title            String
+  description      String
+  price_product    Int          @default(0)
+  stock_of_product Int          @default(1)
+  category         Category     @relation(fields: [categoryId], references: [id])
+  cart_items       Cart_item[]
+  order_items      Order_item[]
+  categoryId       Int
+}
+
+model Order_item {
+  id        Int     @id @default(autoincrement())
+  quantity  Int     @default(1)
+  price     Int     @default(0)
+  orders    Orders  @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  orderId   Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+}
+
+model Category {
+  id            Int       @id @default(autoincrement())
+  category_name String
+  products       Product[]
+}
+
+model Orders {
+  id                  Int          @id @default(autoincrement())
+  totalBeforeDiscount Int          @default(0) @map("total_before_discount")
+  discount            Int          @default(0)
+  total_Amount        Int          @default(0)
+  user                User         @relation(fields: [userId], references: [id])
+  userId              Int
+  order_items         Order_item[]
+}
+
+enum OrderStatus {
+  UNPAID
+  PREPARED
+  SHIPED
+  DELIVERED
+  CANCELLED
+}
+
+model Cart {
+  id                  Int         @id @default(autoincrement())
+  totalBeforeDiscount Int         @default(0) @map("total_before_discount")
+  user                User        @relation(fields: [userId], references: [id])
+  cart_items          Cart_item[]
+  userId              Int
+}
+
+model Cart_item {
+  id             Int     @id @default(autoincrement())
+  quantity       Int     @default(1)
+  subtotal_price Int     @default(0)
+  cart           Cart    @relation(fields: [cartId], references: [id])
+  cartId         Int
+  product        Product @relation(fields: [productId], references: [id])
+  productId      Int
+}
